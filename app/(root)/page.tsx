@@ -2,9 +2,10 @@ import Link from 'next/link'
 import Image from 'next/image'
 import React from 'react'
 import { Button } from "@/components/ui/button"
-import { dummyInterviews } from '@/constants'
 import InterviewCard from '@/components/InterviewCard'
-import { getCurrentUser, getInterviewsByUserId, getLatestInterviews } from '@/lib/actions/auth.action'
+import { getInterviewsByUserId, getLatestInterviews } from '@/lib/actions/general.action'
+import {getCurrentUser} from '@/lib/actions/auth.action'
+
 
 export const page = async () => {
   const user = await getCurrentUser();

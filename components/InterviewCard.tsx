@@ -6,7 +6,7 @@ import { Button } from './ui/button';
 import { cn, getRandomInterviewCover } from '@/lib/utils';
 import DisplayTechicons from './DisplayTechicons';
 
-const InterviewCard = ({interviewId,userId,role,type,techstack,createdAt}:InterviewCardProps) => {
+const InterviewCard = ({id,userId,role,type,techstack,createdAt}:InterviewCardProps) => {
     const feedback = null as Feedback | null;
     const normalizedType = /mix/gi.test(type) ? 'Mixed' : type;
     const formattedDate = dayjs(feedback?.createdAt || createdAt || Date.now()).format('MMM D,YYY');
@@ -68,8 +68,8 @@ const InterviewCard = ({interviewId,userId,role,type,techstack,createdAt}:Interv
             <Link
               href={
                 feedback
-                  ? `/interview/${interviewId}/feedback`
-                  : `/interview/${interviewId}`
+                  ? `/interview/${id}/feedback`
+                  : `/interview/${id}`
               }
             >
               {feedback ? "Check Feedback" : "View Interview"}
