@@ -9,7 +9,7 @@ export const page = () => {
   return (
     <>
       <section className="card-cta">
-        <div className="flex felx-col gap-6 max-w-lg">
+        <div className="flex flex-col gap-6 max-w-lg">
           <h2>Get Interview-Ready with AI-powered Practice & Feedback</h2>
           <p className="text-lg">
             Practice on real interview questions & get iinstant feedback
