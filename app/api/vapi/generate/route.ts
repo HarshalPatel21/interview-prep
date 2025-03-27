@@ -1,14 +1,14 @@
-import { geneateText } from "ai";
+import { generateText } from "ai";
 import { google } from "@ai-sdk/google";
-import { json } from "stream/consumers";
+
 import { getRandomInterviewCover } from "@/lib/utils";
-import { create } from "domain";
+import { db } from "@/firebase/admin";
 
 export async function GET() {
-    return Response.json({success:true , data :"thank you"},{status:200})
+    return Response.json({ success: true, data: "thank you" }, { status: 200 })
 }
 
-export async function POST(request:Request) {
+export async function POST(request: Request) {
     const {
         type,
         role,
@@ -20,8 +20,8 @@ export async function POST(request:Request) {
 
     try {
 
-        const {text : questions}=await geneateText({
-            model:google('gemini-2.0-flash-001'),
+        const { text: questions } = await generateText({
+            model: google('gemini-2.0-flash-001'),
             prompt: `Prepare questions for job interview
              The job role is ${role}.
         The job experience level is ${level}.
@@ -37,20 +37,26 @@ export async function POST(request:Request) {
         });
 
         const interview = {
-            role , type ,level,
+            role: role,
+            type: type,
+            level: level,
             techstack: techstack.split(','),
             questions: JSON.parse(questions),
             userId: userid,
-            finalized : true,
+            finalized: true,
             coverImage: getRandomInterviewCover(),
-            createdAt: new Date().toISOString
+            createdAt: new Date().toISOString(),
         }
-        
+
         await db.collection('interviews').add(interview)
-        return Response.json({success:true},{status:200})        
+        console.log("------------------------------------------------------------------------------------------------------------------------");
+        console.log("interview has been generated with",interview);
+
+        console.log("------------------------------------------------------------------------------------------------------------------------");
+        return Response.json({ success: true }, { status: 200 })
     } catch (error) {
         console.log(error);
-        return Response.json({success:false,error},{status:500})        
+        return Response.json({ success: false, error }, { status: 500 })
     }
 
 }
