@@ -5,6 +5,7 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { vapi } from "@/lib/vapi.sdk";
 import { useRouter } from "next/navigation";
+import { interviewer } from "@/constants";
 
 enum CallStatus {
   INACTIVE = "INACTIVE",
@@ -115,9 +116,9 @@ const Agent = ({ userName, userId, type , interviewId,questions }: AgentProps) =
           .join('\n')
         }
         
-        await vapi.start('INTERVIEW',{
+        await vapi.start(interviewer,{
           variableValues:{
-            questions : va}
+            questions : formattedQuestions}
         })
       }
   };
