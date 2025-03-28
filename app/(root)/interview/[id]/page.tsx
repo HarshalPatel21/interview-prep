@@ -1,4 +1,4 @@
-import { getInterviewById } from '@/lib/actions/general.action';
+import { getFeedbackByInterviewId, getInterviewById } from '@/lib/actions/general.action';
 import { redirect } from 'next/navigation';
 import React from 'react'
 import Image from "next/image";
@@ -8,11 +8,16 @@ import Agent from '@/components/Agent';
 import { getCurrentUser } from '@/lib/actions/auth.action';
 
 const page = async ({params}:RouteParams) => {
- const {id}=await params;
- const user = await getCurrentUser()
- const interview = await getInterviewById(id);
+  const {id}=await params;
+  const user = await getCurrentUser()
+  const interview = await getInterviewById(id);
 
- if(!interview) redirect('/')
+  if(!interview) redirect('/')
+
+  const feedback = await getFeedbackByInterviewId({
+    interviewId: id,
+    userId: user?.id!,
+  });
 
   return (
     <>
@@ -32,7 +37,7 @@ const page = async ({params}:RouteParams) => {
             <p className='bg-dark-200 px-4 py-2 rounded-lg h-fit capitalize'>{interview.type}</p>
         </div>
         <Agent
-        userName={user?.name!}
+        userName={user?.name || ''}
         userId={user?.id}
         interviewId={id}
         type="interview"
