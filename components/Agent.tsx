@@ -73,7 +73,7 @@ const Agent = ({ userName, userId, type , interviewId,questions }: AgentProps) =
     };
   }, []);
 
-  const handleGenerateFeedback; = async(message:SavedMessage[])=>{
+  const handleGenerateFeedback = async(messages:SavedMessage[])=>{
     const {success,id}={
       success:true,
       id: 'feedback-id'
