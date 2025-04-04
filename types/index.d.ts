@@ -13,6 +13,35 @@ interface Feedback {
   createdAt: string;
 }
 
+interface LeetcodeQuestion {
+  id: string;
+  interviewId: interviewId,
+  questionId: string,
+  title: string,
+  content: string,
+  difficulty: string,
+  exampleTestcaseList: string[],
+  codeSnippets: codeSnippets[],
+  topicTags: topicTag[],
+  solution: solution,
+}
+
+interface codeSnippets{
+  lang:string;
+  langSlug:string;
+  code:string;
+}
+
+interface topicTag{
+  name:string;
+  slug:string
+}
+
+interface solution{
+  id:string;
+  content:string
+}
+
 interface Interview {
   id: string;
   role: string;
@@ -62,6 +91,17 @@ interface RouteParams {
 }
 
 interface GetFeedbackByInterviewIdParams {
+  interviewId: string;
+  userId: string;
+}
+
+interface GetLeetcodeQuestionParams{
+  interviewId: string;
+  userId: string;
+  leetcodeQuestionId?: string;
+}
+
+interface GetLeetcodeQuestionByInterviewIdParams{
   interviewId: string;
   userId: string;
 }

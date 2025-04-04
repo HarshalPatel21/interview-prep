@@ -4,7 +4,7 @@ import { generateObject } from "ai";
 import { google } from "@ai-sdk/google";
 
 import { db } from "@/firebase/admin";
-import { feedbackSchema } from "@/constants";
+import { feedbackSchema , leetcodeTags } from "@/constants";
 
 
 export async function getInterviewsByUserId(userId: string): Promise<Interview[] | null> {
@@ -107,6 +107,7 @@ export async function createFeedback(params: CreateFeedbackParams) {
         return { success: false };
     }
 }
+
 export async function getFeedbackByInterviewId(
     params: GetFeedbackByInterviewIdParams
 ): Promise<Feedback | null> {
@@ -123,4 +124,133 @@ export async function getFeedbackByInterviewId(
 
     const feedbackDoc = querySnapshot.docs[0];
     return { id: feedbackDoc.id, ...feedbackDoc.data() } as Feedback;
+}
+
+export async function getLeetcodeQuestion(params: GetLeetcodeQuestionParams){
+    const leetcodeTag = leetcodeTags[Math.floor(Math.random() * leetcodeTags.length)];
+    const { interviewId, userId, leetcodeQuestionId } = params;
+    
+    try {
+        
+        const responseFortitleSlug = await fetch("https://leetcode.com/graphql/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Cookie: `LEETCODE_SESSION=${process.env.LEETCODE_SESSION}; csrftoken=${process.env.CSRF_TOKEN}`
+            },
+            body: JSON.stringify({
+                query: `query problemsetQuestionList($categorySlug: String, $limit: Int, $skip: Int, $filters: QuestionListFilterInput) {
+          problemsetQuestionList: questionList(
+            categorySlug: $categorySlug
+            limit: $limit
+            skip: $skip
+            filters: $filters
+          ) {
+            total: totalNum
+            questions: data {
+              title
+              titleSlug
+            }
+          }
+        }`,
+                variables: {
+                    categorySlug: "algorithms",
+                    skip: Math.floor(Math.random() * 10),  
+                    limit: 1,
+                    filters: { tags: [leetcodeTag] } 
+                }
+            })
+        });
+
+        const data = await responseFortitleSlug.json();
+        const titleSlug = data.data.problemsetQuestionList.questions[0].titleSlug ;
+
+        const response = await fetch("https://leetcode.com/graphql/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Cookie: `LEETCODE_SESSION=${process.env.LEETCODE_SESSION}; csrftoken=${process.env.CSRF_TOKEN}`
+            },
+            body: JSON.stringify({
+                query: `query questionData($titleSlug: String!) {
+                question(titleSlug: $titleSlug) {
+                    questionId
+                    title
+                    content
+                    difficulty
+                    likes
+                    dislikes
+                    exampleTestcaseList
+                    codeSnippets {
+                    lang
+                    langSlug
+                    code
+                    }
+                    hints
+                    topicTags {
+                    name
+                    slug
+                    }
+                    solution {
+                    id
+                    content
+                    }
+                }
+                }`,
+                variables: {
+                    "titleSlug": titleSlug
+                }
+            })
+        });
+
+        const res = await response.json();
+        const question = res.data.question
+        
+        const leetcodeQuestion = {
+            interviewId: interviewId,
+            userId: userId,
+            questionId: question.questionId ,
+            title: question.title ,
+            content: question.content ,
+            difficulty: question.difficulty ,
+            exampleTestcaseList: question.exampleTestcaseList ,
+            codeSnippets: question.codeSnippets ,
+            topicTags: question.topicTags ,
+            solution: question.solution ,
+        };
+
+        let leetcodeQuestionRef;
+
+        if (leetcodeQuestionId) {
+            leetcodeQuestionRef = db.collection("leetcode").doc(leetcodeQuestionId);
+        } else {
+            leetcodeQuestionRef = db.collection("leetcode").doc();
+        }
+
+        await leetcodeQuestionRef.set(leetcodeQuestion);
+        
+        
+        return { success: true, leetcodeQuestionId: leetcodeQuestionRef.id };
+    } catch (error) {
+        console.error("Error While getting leetcode question",error);
+        return { success: false };
+    }
+}
+
+export async function getLeetcodeQuestionByInterviewId(
+    params: GetLeetcodeQuestionByInterviewIdParams
+): Promise<LeetcodeQuestion | null> {
+    const { interviewId, userId } = params;
+
+    const querySnapshot = await db
+        .collection("leetcode")
+        .where("interviewId", "==", interviewId)
+        .where("userId", "==", userId)
+        .limit(1)
+        .get();
+
+    if (querySnapshot.empty) return null;
+
+    const leetcodeQuestionDoc = querySnapshot.docs[0];
+    return { id: leetcodeQuestionDoc.id, ...leetcodeQuestionDoc.data() } as LeetcodeQuestion;
 }

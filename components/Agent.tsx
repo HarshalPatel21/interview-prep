@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { vapi } from "@/lib/vapi.sdk";
 import { useRouter } from "next/navigation";
 import { interviewer } from "@/constants";
-import { createFeedback } from "@/lib/actions/general.action";
+import { createFeedback, getLeetcodeQuestion } from "@/lib/actions/general.action";
 
 enum CallStatus {
   INACTIVE = "INACTIVE",
@@ -33,6 +33,7 @@ const Agent = ({ userName, userId, type , interviewId,questions }: AgentProps) =
 
     const onCallEnd = () => {
       setCallStatus(CallStatus.FINISHED);
+      // router.push("/interview/leetcode");
     };
 
     const onMessage = (message: Message) => {
@@ -89,15 +90,26 @@ const Agent = ({ userName, userId, type , interviewId,questions }: AgentProps) =
     }
   }
 
-  useEffect(() => {
-    console.log("callStatus : ", callStatus);
+  const handleGenerateLeetcode = async () => {
+    const { success, leetcodeQuestionId } = await getLeetcodeQuestion({
+      interviewId: interviewId!,
+      userId: userId!,
+    });
     
+    if (success && leetcodeQuestionId) {
+      router.push(`/interview/${interviewId}/leetcode`);
+    } else {
+      router.push("/");
+    }
+  };
+
+  useEffect(() => {
     if (callStatus === CallStatus.FINISHED) {
-      console.log("type", type);
       if(type === 'generate'){
         router.push("/");
       }else{
-        handleGenerateFeedback(messages)
+        // handleGenerateFeedback(messages)
+        handleGenerateLeetcode();
       }
     }
   }, [messages, callStatus, router, type, userId]);
