@@ -4,7 +4,7 @@ import { generateObject } from "ai";
 import { google } from "@ai-sdk/google";
 
 import { db } from "@/firebase/admin";
-import { feedbackSchema , leetcodeTags } from "@/constants";
+import { feedbackSchema, leetcodeFeedbackSchema, leetcodeTags } from "@/constants";
 
 
 export async function getInterviewsByUserId(userId: string): Promise<Interview[] | null> {
@@ -126,12 +126,30 @@ export async function getFeedbackByInterviewId(
     return { id: feedbackDoc.id, ...feedbackDoc.data() } as Feedback;
 }
 
-export async function getLeetcodeQuestion(params: GetLeetcodeQuestionParams){
+export async function getLeetcodeFeedbackByInterviewId(
+    params: GetFeedbackByInterviewIdParams
+): Promise<Feedback | null> {
+    const { interviewId, userId } = params;
+
+    const querySnapshot = await db
+        .collection("leetcodeFeedback")
+        .where("interviewId", "==", interviewId)
+        .where("userId", "==", userId)
+        .limit(1)
+        .get();
+
+    if (querySnapshot.empty) return null;
+
+    const feedbackDoc = querySnapshot.docs[0];
+    return { id: feedbackDoc.id, ...feedbackDoc.data() } as Feedback;
+}
+
+export async function getLeetcodeQuestion(params: GetLeetcodeQuestionParams) {
     const leetcodeTag = leetcodeTags[Math.floor(Math.random() * leetcodeTags.length)];
     const { interviewId, userId, leetcodeQuestionId } = params;
-    
+
     try {
-        
+
         const responseFortitleSlug = await fetch("https://leetcode.com/graphql/", {
             method: "POST",
             headers: {
@@ -155,15 +173,15 @@ export async function getLeetcodeQuestion(params: GetLeetcodeQuestionParams){
         }`,
                 variables: {
                     categorySlug: "algorithms",
-                    skip: Math.floor(Math.random() * 10),  
+                    skip: Math.floor(Math.random() * 10),
                     limit: 1,
-                    filters: { tags: [leetcodeTag] } 
+                    filters: { tags: [leetcodeTag] }
                 }
             })
         });
 
         const data = await responseFortitleSlug.json();
-        const titleSlug = data.data.problemsetQuestionList.questions[0].titleSlug ;
+        const titleSlug = data.data.problemsetQuestionList.questions[0].titleSlug;
 
         const response = await fetch("https://leetcode.com/graphql/", {
             method: "POST",
@@ -205,18 +223,18 @@ export async function getLeetcodeQuestion(params: GetLeetcodeQuestionParams){
 
         const res = await response.json();
         const question = res.data.question
-        
+
         const leetcodeQuestion = {
             interviewId: interviewId,
             userId: userId,
-            questionId: question.questionId ,
-            title: question.title ,
-            content: question.content ,
-            difficulty: question.difficulty ,
-            exampleTestcaseList: question.exampleTestcaseList ,
-            codeSnippets: question.codeSnippets ,
-            topicTags: question.topicTags ,
-            solution: question.solution ,
+            questionId: question.questionId,
+            title: question.title,
+            content: question.content,
+            difficulty: question.difficulty,
+            exampleTestcaseList: question.exampleTestcaseList,
+            codeSnippets: question.codeSnippets,
+            topicTags: question.topicTags,
+            solution: question.solution,
         };
 
         let leetcodeQuestionRef;
@@ -228,11 +246,11 @@ export async function getLeetcodeQuestion(params: GetLeetcodeQuestionParams){
         }
 
         await leetcodeQuestionRef.set(leetcodeQuestion);
-        
-        
+
+
         return { success: true, leetcodeQuestionId: leetcodeQuestionRef.id };
     } catch (error) {
-        console.error("Error While getting leetcode question",error);
+        console.error("Error While getting leetcode question", error);
         return { success: false };
     }
 }
@@ -253,4 +271,59 @@ export async function getLeetcodeQuestionByInterviewId(
 
     const leetcodeQuestionDoc = querySnapshot.docs[0];
     return { id: leetcodeQuestionDoc.id, ...leetcodeQuestionDoc.data() } as LeetcodeQuestion;
+}
+
+export async function createLeetcodeFeedback(params: CreateLeetcodeFeedbackParams) {
+    const { interviewId, userId, title, code, description, feedbackId } = params;
+
+    try {
+        const { object } = await generateObject({
+            model: google("gemini-2.0-flash-001", {
+                structuredOutputs: false,
+            }),
+            schema: leetcodeFeedbackSchema,
+            prompt: `
+          You are an AI interviewer analyzing a mock interview. Your task is to evaluate the candidate based on structured categories. Be thorough and detailed in your analysis. Don't be lenient with the candidate. If there are mistakes or areas for improvement, point them out.
+          Question Title:
+          ${title}
+          Question Description:
+          ${description}
+          Interview Code:
+          ${code}
+  
+          Please score the candidate from 0 to 100 in the following areas. Do not add categories other than the ones provided:
+          - **Code Structure**: Variable naming, best coding practices, structure of code, Clarity of code
+          - **Edge Case**: Handling edge cases.
+          - **Problem-Solving**: Ability to analyze problems and solving.
+          `,
+            system:
+                "You are a professional interviewer analyzing a mock interview. Your task is to evaluate the candidate based on structured categories",
+        });
+
+        const feedback = {
+            interviewId: interviewId,
+            userId: userId,
+            totalScore: object.totalScore,
+            categoryScores: object.categoryScores,
+            strengths: object.strengths,
+            areasForImprovement: object.areasForImprovement,
+            finalAssessment: object.finalAssessment,
+            createdAt: new Date().toISOString(),
+        };
+
+        let feedbackRef;
+
+        if (feedbackId) {
+            feedbackRef = db.collection("leetcodeFeedback").doc(feedbackId);
+        } else {
+            feedbackRef = db.collection("leetcodeFeedback").doc();
+        }
+
+        await feedbackRef.set(feedback);
+
+        return { success: true, feedbackId: feedbackRef.id };
+    } catch (error) {
+        console.error("Error saving feedback:", error);
+        return { success: false };
+    }
 }

@@ -29,7 +29,7 @@ export async function POST(request: Request) {
         The tech stack used in the job is: ${techstack}.
         The focus between behavioural and technical questions should lean towards: ${type}.
         The amount of questions required is: ${amount}.
-        Please return only the questions, without any additional text.
+        Please return only the questions, without any additional text. And feel free to mix in the other type occasionally to keep it realistic. The questions should reflect real-world scenarios, edge cases, architecture challenges, team dynamics, or decision-making under constraints—rather than standard textbook problems. 
         The questions are going to be read by a voice assistant so do not use "/" or "*" or any other special characters which might break the voice assistant.
         Return the questions formatted like this:
         ["Question 1", "Question 2", "Question 3"]
@@ -55,5 +55,4 @@ export async function POST(request: Request) {
         console.log(error);
         return Response.json({ success: false, error }, { status: 500 })
     }
-
 }

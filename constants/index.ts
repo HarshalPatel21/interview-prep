@@ -189,6 +189,30 @@ export const feedbackSchema = z.object({
   finalAssessment: z.string(),
 });
 
+export const leetcodeFeedbackSchema = z.object({
+  totalScore: z.number(),
+  categoryScores: z.tuple([
+    z.object({
+      name: z.literal("Code Structure"),
+      score: z.number(),
+      comment: z.string(),
+    }),
+    z.object({
+      name: z.literal("Edge Case"),
+      score: z.number(),
+      comment: z.string(),
+    }),
+    z.object({
+      name: z.literal("Problem Solving"),
+      score: z.number(),
+      comment: z.string(),
+    }),
+  ]),
+  strengths: z.array(z.string()),
+  areasForImprovement: z.array(z.string()),
+  finalAssessment: z.string(),
+});
+
 export const interviewCovers = [
   "/adobe.png",
   "/amazon.png",

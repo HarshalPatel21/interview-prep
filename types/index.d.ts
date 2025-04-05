@@ -61,6 +61,15 @@ interface CreateFeedbackParams {
   feedbackId?: string;
 }
 
+interface CreateLeetcodeFeedbackParams {
+  interviewId: string;
+  userId: string;
+  title: string;
+  code: string;
+  description: string;
+  feedbackId?: string;
+}
+
 interface User {
   name: string;
   email: string;

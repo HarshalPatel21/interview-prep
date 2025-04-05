@@ -6,7 +6,10 @@ import { cn } from "@/lib/utils";
 import { vapi } from "@/lib/vapi.sdk";
 import { useRouter } from "next/navigation";
 import { interviewer } from "@/constants";
-import { createFeedback, getLeetcodeQuestion } from "@/lib/actions/general.action";
+import {
+  createFeedback,
+  getLeetcodeQuestion,
+} from "@/lib/actions/general.action";
 
 enum CallStatus {
   INACTIVE = "INACTIVE",
@@ -20,7 +23,13 @@ interface SavedMessage {
   content: string;
 }
 
-const Agent = ({ userName, userId, type , interviewId,questions }: AgentProps) => {
+const Agent = ({
+  userName,
+  userId,
+  type,
+  interviewId,
+  questions,
+}: AgentProps) => {
   const router = useRouter();
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [callStatus, setCallStatus] = useState<CallStatus>(CallStatus.INACTIVE);
@@ -33,7 +42,6 @@ const Agent = ({ userName, userId, type , interviewId,questions }: AgentProps) =
 
     const onCallEnd = () => {
       setCallStatus(CallStatus.FINISHED);
-      // router.push("/interview/leetcode");
     };
 
     const onMessage = (message: Message) => {
@@ -75,28 +83,19 @@ const Agent = ({ userName, userId, type , interviewId,questions }: AgentProps) =
     };
   }, []);
 
-  const handleGenerateFeedback = async(messages:SavedMessage[])=>{
-    const { success, feedbackId:id } = await createFeedback({
-      interviewId: interviewId!,
-      userId: userId!,
-      transcript: messages,
-    });
-    
-    if(success && id){
-      router.push(`/interview/${interviewId}/feedback`)
-    }
-    else{
-      router.push('/')
-    }
-  }
-
   const handleGenerateLeetcode = async () => {
     const { success, leetcodeQuestionId } = await getLeetcodeQuestion({
       interviewId: interviewId!,
       userId: userId!,
     });
-    
-    if (success && leetcodeQuestionId) {
+
+    const { success: feedbackSuccess, feedbackId: id } = await createFeedback({
+      interviewId: interviewId!,
+      userId: userId!,
+      transcript: messages,
+    });
+
+    if (success && leetcodeQuestionId && feedbackSuccess && id) {
       router.push(`/interview/${interviewId}/leetcode`);
     } else {
       router.push("/");
@@ -105,10 +104,9 @@ const Agent = ({ userName, userId, type , interviewId,questions }: AgentProps) =
 
   useEffect(() => {
     if (callStatus === CallStatus.FINISHED) {
-      if(type === 'generate'){
+      if (type === "generate") {
         router.push("/");
-      }else{
-        // handleGenerateFeedback(messages)
+      } else {
         handleGenerateLeetcode();
       }
     }
@@ -117,27 +115,28 @@ const Agent = ({ userName, userId, type , interviewId,questions }: AgentProps) =
   const handleCall = async () => {
     setCallStatus(CallStatus.CONNECTING);
 
-      if(type === 'generate'){
-        await vapi.start(process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!, {
-          variableValues: {
-            username: userName,
-            userid: userId,
-          },
-        });
-      }else{
-        let formattedQuestions = ''
+    if (type === "generate") {
+      await vapi.start(process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!, {
+        variableValues: {
+          username: userName,
+          userid: userId,
+        },
+      });
+    } else {
+      let formattedQuestions = "";
 
-        if(questions){
-          formattedQuestions = questions
+      if (questions) {
+        formattedQuestions = questions
           .map((question) => `- ${question}`)
-          .join('\n')
-        }
-        
-        await vapi.start(interviewer,{
-          variableValues:{
-            questions : formattedQuestions}
-        })
+          .join("\n");
       }
+
+      await vapi.start(interviewer, {
+        variableValues: {
+          questions: formattedQuestions,
+        },
+      });
+    }
   };
   const handleDisconnect = () => {
     setCallStatus(CallStatus.FINISHED);
@@ -145,7 +144,8 @@ const Agent = ({ userName, userId, type , interviewId,questions }: AgentProps) =
   };
 
   const latestMessage = messages[messages.length - 1]?.content;
-  const isCallInactiveOrFinished = callStatus === CallStatus.INACTIVE || callStatus === 'FINISHED';
+  const isCallInactiveOrFinished =
+    callStatus === CallStatus.INACTIVE || callStatus === "FINISHED";
   return (
     <>
       <div className="call-view">
@@ -201,13 +201,13 @@ const Agent = ({ userName, userId, type , interviewId,questions }: AgentProps) =
             />
 
             <span className="relative">
-              {isCallInactiveOrFinished
-                ? "Call"
-                : ". . ."}
+              {isCallInactiveOrFinished ? "Call" : ". . ."}
             </span>
           </button>
         ) : (
-          <button className="btn-disconnect" onClick={handleDisconnect}>End</button>
+          <button className="btn-disconnect" onClick={handleDisconnect}>
+            End
+          </button>
         )}
       </div>
     </>
