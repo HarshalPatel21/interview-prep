@@ -172,14 +172,14 @@ const page = async ({ params }: RouteParams) => {
 
       <div className="buttons">
         <Button className="btn-secondary flex-1">
-          <Link href="/" className="flex w-full justify-center">
+          <Link href="/" className="flex w-100px justify-center">
             <p className="text-sm font-semibold text-primary-200 text-center">
               Back to dashboard
             </p>
           </Link>
         </Button>
 
-        <Button className="btn-primary flex-1">
+        {/* <Button className="btn-primary flex-1">
           <Link
             href={`/interview/${id}`}
             className="flex w-full justify-center"
@@ -188,7 +188,7 @@ const page = async ({ params }: RouteParams) => {
               Retake Interview
             </p>
           </Link>
-        </Button>
+        </Button> */}
       </div>
     </section>
   );

@@ -80,12 +80,12 @@ const AuthForm = ({ type }: { type: FormType }) => {
 
         const idToken = await userCredential.user.getIdToken();
 
-				if(!idToken){
-					toast.error('Sign in failed')
-					return
-				}
+        if (!idToken) {
+          toast.error("Sign in failed");
+          return;
+        }
 
-				await signIn({email,idToken});
+        await signIn({ email, idToken });
 
         toast.success("Sign in successfully");
         router.push("/");
@@ -102,7 +102,9 @@ const AuthForm = ({ type }: { type: FormType }) => {
       <div className="flex flex-col gap-6 card py-14 px-10">
         <div className="flex flex-row gap-2 justify-center">
           <Image src="/logo.svg" alt="logo" height={32} width={38} />
-          <h2 className="text-primary-100">PrepWise</h2>
+          <h2 className="text-primary-100">Interviewly</h2>
+        </div>
+        <div className="flex flex-row gap-2 justify-center">
           <h3>Practice job interview with AI</h3>
         </div>
 

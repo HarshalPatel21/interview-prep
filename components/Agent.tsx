@@ -29,6 +29,7 @@ const Agent = ({
   type,
   interviewId,
   questions,
+  technical
 }: AgentProps) => {
   const router = useRouter();
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -83,6 +84,25 @@ const Agent = ({
     };
   }, []);
 
+  // const handleGenerateLeetcode = async () => {
+  //   const { success, leetcodeQuestionId } = await getLeetcodeQuestion({
+  //     interviewId: interviewId!,
+  //     userId: userId!,
+  //   });
+
+  //   const { success: feedbackSuccess, feedbackId: id } = await createFeedback({
+  //     interviewId: interviewId!,
+  //     userId: userId!,
+  //     transcript: messages,
+  //   });
+
+  //   if (success && leetcodeQuestionId && feedbackSuccess && id) {
+  //     router.push(`/interview/${interviewId}/code`);
+  //   } else {
+  //     router.push("/");
+  //   }
+  // };
+
   const handleGenerateLeetcode = async () => {
     const { success, leetcodeQuestionId } = await getLeetcodeQuestion({
       interviewId: interviewId!,
@@ -95,13 +115,23 @@ const Agent = ({
       transcript: messages,
     });
 
-    if (success && leetcodeQuestionId && feedbackSuccess && id) {
-      router.push(`/interview/${interviewId}/leetcode`);
+    if (success && feedbackSuccess && id) {
+      // Check if interview type is behavioral
+      if (!technical) {
+        router.push(`/interview/${interviewId}/feedback`);
+      } else {
+        // Only proceed with code route if we have leetcodeQuestionId and it's not behavioral
+        if (leetcodeQuestionId) {
+          router.push(`/interview/${interviewId}/code`);
+        } else {
+          router.push("/");
+        }
+      }
     } else {
       router.push("/");
     }
   };
-
+  
   useEffect(() => {
     if (callStatus === CallStatus.FINISHED) {
       if (type === "generate") {
