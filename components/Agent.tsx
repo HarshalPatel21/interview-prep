@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { vapi } from "@/lib/vapi.sdk";
@@ -10,6 +10,7 @@ import {
   createFeedback,
   getLeetcodeQuestion,
 } from "@/lib/actions/general.action";
+import WebcamStreamer from "./WebcamStreamer";
 
 enum CallStatus {
   INACTIVE = "INACTIVE",
@@ -35,6 +36,8 @@ const Agent = ({
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [callStatus, setCallStatus] = useState<CallStatus>(CallStatus.INACTIVE);
   const [messages, setMessages] = useState<SavedMessage[]>([]);
+  const webcamStreamerRef = useRef<any>(null);
+
 
   useEffect(() => {
     const onCallStart = () => {
@@ -134,6 +137,7 @@ const Agent = ({
   
   useEffect(() => {
     if (callStatus === CallStatus.FINISHED) {
+      webcamStreamerRef.current?.stopStreaming();
       if (type === "generate") {
         router.push("/");
       } else {
@@ -167,6 +171,7 @@ const Agent = ({
         },
       });
     }
+    webcamStreamerRef.current?.startStreaming();
   };
   const handleDisconnect = () => {
     setCallStatus(CallStatus.FINISHED);
@@ -192,17 +197,8 @@ const Agent = ({
           </div>
           <h3>AI Interviewer</h3>
         </div>
-        <div className="card-border">
-          <div className="card-content">
-            <Image
-              src="/user-avatar.png"
-              alt="user avatar"
-              width={110}
-              height={80}
-              className="rounded-full obeject-cover w-[120px] h-[120px]"
-            ></Image>
-            <h3>{userName}</h3>
-          </div>
+        <div className="card-interviewer">
+          <WebcamStreamer ref={webcamStreamerRef} />
         </div>
       </div>
       {messages.length > 0 && (

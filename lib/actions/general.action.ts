@@ -327,3 +327,17 @@ export async function createLeetcodeFeedback(params: CreateLeetcodeFeedbackParam
         return { success: false };
     }
 }
+
+export async function retakeInterview(params: retakeInterviewProps)
+
+ {const { interviewId} = params
+  try {
+    await fetch(`/api/interview/${interviewId}/retake`, {
+      method: "POST",
+    });
+    
+    //navigation.navigate('InterviewScreen', { interviewId });
+  } catch (err) {
+    console.error("Failed to retake interview", err);
+  }
+};

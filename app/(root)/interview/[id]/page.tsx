@@ -6,6 +6,11 @@ import { getRandomInterviewCover } from '@/lib/utils';
 import DisplayTechicons from '@/components/DisplayTechicons';
 import Agent from '@/components/Agent';
 import { getCurrentUser } from '@/lib/actions/auth.action';
+// import WebcamRecorder from '@/components/WebCamRecorder';
+import dynamic from "next/dynamic";
+import WebcamStreamer from '@/components/WebcamStreamer';
+
+// const WebcamRecorder = dynamic(() => import("@/components/WebCamRecorder"), { ssr: false });
 
 const page = async ({params}:RouteParams) => {
   const {id}=await params;
@@ -48,6 +53,10 @@ const page = async ({params}:RouteParams) => {
         feedbackId={feedback?.id}
         technical={interview.type === "technical"}
       />
+      {/* <div className="mt-8">
+        <h2 className="text-xl font-semibold mb-4">Interview Recording</h2>
+        <WebcamStreamer/>
+      </div> */}
     </>
   );
 }

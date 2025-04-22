@@ -4,6 +4,7 @@ import {
   getFeedbackByInterviewId,
   getInterviewById,
   getLeetcodeFeedbackByInterviewId,
+  retakeInterview,
 } from "@/lib/actions/general.action";
 import dayjs from "dayjs";
 import Image from "next/image";
@@ -27,6 +28,16 @@ const page = async ({ params }: RouteParams) => {
     interviewId: id,
     userId: user?.id,
   });
+  const handleRetakeInterview = async () => {
+    const user = await getCurrentUser();
+
+    const { success, feedbackId } = await retakeInterview({
+      interviewId: id,
+      code: code,
+      userId: user?.id
+    });
+    
+  };
 
   return (
     <section className="section-feedback">
